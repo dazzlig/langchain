@@ -9,3 +9,5 @@ openai==1.*
 tavily-python
 fastapi
 uvicorn
+pytest
+langsmith

@@ -43,8 +43,14 @@ app.add_middleware(
 
 async def process_graph(run_id: str, query: str, thread_id: str):
     """LangGraph 파이프라인을 실행하는 백그라운드 태스크"""
+    import time
+    from datetime import datetime
+
     try:
         run_store[run_id]["status"] = "running" # 상태를 '실행 중'으로 변경
+        
+        # [모니터링] 추적 시작
+        start_time = time.time()
         
         # LangGraph(pipeline.py)에 전달할 설정 및 입력값
         config = {"configurable": {"thread_id": thread_id}}
@@ -57,13 +63,38 @@ async def process_graph(run_id: str, query: str, thread_id: str):
         # Invoke the graph# [핵심] pipeline.py에 정의된 그래프 실행!
         output = await graph_app.ainvoke(inputs, config=config)
         
+        # [모니터링] 추적 종료
+        end_time = time.time()
+        execution_time = end_time - start_time
+        
         # 결과 추출 (Writer가 작성한 최종 문서 등)
         final_doc = output.get("agent_results", {}).get("final_doc", "No final document produced.")
         
+        # [모니터링] 메트릭 수집
+        metrics = {
+            "input_length": len(query),
+            "execution_time": execution_time,
+            "model_used": "gpt-4o-mini", # 로그 등에서 추출 가능
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        # [모니터링] 품질 경고
+        alerts = []
+        if execution_time > 30:
+            alerts.append("SLOW_EXECUTION")
+        if len(final_doc) < 50:
+            alerts.append("SHORT_OUTPUT")
+            
+        print(f"📊 Run {run_id} Metrics: {metrics}")
+        if alerts:
+            print(f"⚠️ Alerts: {alerts}")
+
         run_store[run_id]["status"] = "completed"
         run_store[run_id]["result"] = {
             "final_doc": final_doc,
-            "full_state": output.get("agent_results", {})
+            "full_state": output.get("agent_results", {}),
+            "metrics": metrics,
+            "alerts": alerts
         }
         
     except Exception as e:

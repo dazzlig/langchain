@@ -22,7 +22,7 @@ pip install -r requirements.txt
 ```bash
 python -m pytest test_pipeline.py -v
 ```
-- **성공 기준**: 모든 테스트 항목에 `PASSED`가 표시되어야 합니다.
+- 성공 기준: 모든 테스트 항목에 `PASSED`가 표시되어야 합니다.
 
 ---
 
@@ -32,7 +32,7 @@ LangSmith에 평가용 데이터셋을 생성하고, 자동 평가를 준비합�
 ```bash
 python evaluation.py
 ```
-- **확인**: "Created dataset..." 메시지가 출력되면 성공입니다.
+- 확인: "Created dataset..." 메시지가 출력되면 성공입니다.
 
 ---
 

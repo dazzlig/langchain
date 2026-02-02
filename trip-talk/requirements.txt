@@ -1,0 +1,10 @@
+langchain
+langgraph
+langchain-openai
+langchain-community
+gradio
+tavily-python
+supabase
+youtube-transcript-api
+python-dotenv
+tiktoken

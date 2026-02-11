@@ -107,6 +107,34 @@ async def chat_response(message, history, context, loc, sit):
         history.append({"role": "assistant", "content": error_msg})
         yield history, ""
 
+# Google Places 도구 초기화
+from tools.google_places import GooglePlacesTool
+place_tool = GooglePlacesTool()
+
+def update_suggestions(query):
+    """검색어 변경 시 장소 추천 목록 업데이트"""
+    if not query or len(query) < 2:
+        return gr.update(choices=[], visible=False)
+    
+    try:
+        results = place_tool.search_places(query)
+        # Dropdown choices: ["Main Text (Full Text)", ...]
+        choices = [f"{item['main_text']} ({item['description']})" for item in results]
+        return gr.update(choices=choices, visible=True)
+    except Exception as e:
+        print(f"Suggestion Error: {e}")
+        return gr.update(choices=[], visible=False)
+
+def select_place(selected_text):
+    """추천 장소 선택 시 장소 입력창 채우기"""
+    if not selected_text:
+        return gr.update()
+    
+    # "Main Text (Full Text)" 형식에서 Description 부분 추출 또는 전체 사용
+    # 여기서는 괄호 포함 전체 텍스트를 사용하거나, 파싱해서 정제할 수 있음.
+    # 사용 편의를 위해 전체 텍스트 사용
+    return selected_text
+
 # UI 레이아웃
 with gr.Blocks(title="TripTalker", theme=gr.themes.Soft()) as demo:
     gr.Markdown("# ✈️ TripTalker: 실전 여행 회화 시뮬레이터")
@@ -116,10 +144,29 @@ with gr.Blocks(title="TripTalker", theme=gr.themes.Soft()) as demo:
     
     with gr.Row():
         with gr.Column(scale=4 ,min_width=400):
-            location_input = gr.Textbox(label="장소 / 국가", placeholder="예: 오사카 라면집")
+            # Google Places Autocomplete
+            gr.Markdown("### 📍 장소 검색")
+            search_input = gr.Textbox(label="장소 검색", placeholder="예: 도쿄 디즈니, 오사카 라면...", show_label=False)
+            suggestion_dropdown = gr.Dropdown(label="추천 장소", visible=False, interactive=True)
+            
+            gr.Markdown("---")
+            location_input = gr.Textbox(label="장소 / 국가 (자동 입력됨)", placeholder="직접 입력하거나 위에서 검색하세요")
             situation_input = gr.Textbox(label="상황", placeholder="예: 고수 빼고 매운 라면 주문하기")
             btn_start = gr.Button("1. 가이드 받기 & 시작", variant="primary")
             
+            # 이벤트 연결 (UI 내부 정의)
+            search_input.change(
+                fn=update_suggestions,
+                inputs=search_input,
+                outputs=suggestion_dropdown
+            )
+            
+            suggestion_dropdown.change( # select 대신 change 사용 (Dropdown 값 변경 시)
+                fn=select_place,
+                inputs=suggestion_dropdown,
+                outputs=location_input
+            )
+
             # 1. 대화 흐름 (가장 중요)
             with gr.Tabs():
                 with gr.TabItem("📖 대화 흐름"):

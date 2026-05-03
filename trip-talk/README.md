@@ -3,7 +3,7 @@
 **TripTalker**는 여행 상황에 맞는 가이드를 생성하고, AI 점원과 실전처럼 대화하며 여행 회화를 연습할 수 있는 시뮬레이터입니다.
 
 
-TripTalker는 **하이브리드 검색(Hybrid Search)**과 **의미 기반 캐시(Semantic Cache)**를 결합하여 빠르고 정확한 가이드를 제공합니다.
+TripTalker는 하이브리드 검색(Hybrid Search)과 의미 기반 캐시(Semantic Cache)를 결합하여 빠르고 정확한 가이드를 제공합니다.
 
 
 
